@@ -20,6 +20,12 @@ app.use(
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Chatly API is running 🚀",
+  });
+});
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authRoutes);
