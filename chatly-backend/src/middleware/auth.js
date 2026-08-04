@@ -1,0 +1,22 @@
+import jwt from "jsonwebtoken";
+
+export const requireAuth = (req, res, next) => {
+  const token = req.cookies?.token;
+
+  if (!token) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.sub;
+    next();
+  } catch {
+    return res.status(401).json({ error: "Invalid or expired session" });
+  }
+};
+
+export const signToken = (userId) =>
+  jwt.sign({ sub: userId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  });
