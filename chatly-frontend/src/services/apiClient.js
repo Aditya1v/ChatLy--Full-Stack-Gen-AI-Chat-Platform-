@@ -2,7 +2,7 @@ export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
 const request = async (path, options = {}) => {
-  console.log(API_BASE_URL);
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include", // send/receive the httpOnly auth cookie
     headers: options.body instanceof FormData

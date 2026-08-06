@@ -18,14 +18,10 @@ app.use(
     credentials: true,
   }),
 );
-console.log("CLIENT_ORIGIN =", process.env.CLIENT_ORIGIN);
+
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
-app.use((req, res, next) => {
-  console.log("Cookie:", req.headers.cookie);
-  console.log("Parsed:", req.cookies);
-  next();
-});
+
 
 app.get("/", (req, res) => {
   res.json({
