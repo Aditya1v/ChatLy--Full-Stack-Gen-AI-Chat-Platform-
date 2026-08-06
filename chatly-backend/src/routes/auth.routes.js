@@ -5,6 +5,7 @@ import { signToken, requireAuth } from "../middleware/auth.js";
 const router = Router();
 
 const isProduction = process.env.NODE_ENV === "production";
+console.log("NODE_ENV =", process.env.NODE_ENV);
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction,
