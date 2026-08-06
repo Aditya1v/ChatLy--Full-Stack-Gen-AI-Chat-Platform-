@@ -2,10 +2,14 @@
 
 A production-shaped AI chat application built on the Gemini API, with real user accounts, persistent conversations, live token streaming, and retrieval-augmented generation (RAG) over user-uploaded documents.
 
-Unlike a typical "wrap the API in a chat UI" project, the Gemini key never touches the browser, responses stream token-by-token over Server-Sent Events instead of simulating typing, and every chat is scoped to an authenticated user in MongoDB rather than `localStorage`.
+Unlike traditional AI chatbot clones, ChatLy is designed with production-ready architecture. The Gemini API key never reaches the browser, authentication is handled using HTTP-only JWT cookies, conversations are stored in MongoDB, and responses stream token-by-token using Server-Sent Events (SSE).
 
-**Live demo:** _add your deployed URL here_
-**Screenshots:** _add 2–3 screenshots or a short GIF here — this section sells the project before anyone reads a line of code_
+## Live Demo
+
+**Frontend:** https://chatly-ai-alpha.vercel.app
+
+> **Note:** The backend is deployed on Render and the frontend on Vercel. Browsers with third-party cookies disabled may block authentication because the frontend and backend are hosted on different domains. In production, deploying both under the same parent domain (e.g. `app.example.com` and `api.example.com`) resolves this limitation.
+
 
 ---
 
@@ -41,6 +45,32 @@ Most portfolio chatbot clones call an LLM directly from the frontend, which expo
 **Backend** — Node.js, Express, MongoDB + Mongoose, JWT + bcrypt, Multer (file uploads), `pdf-parse`
 
 **AI** — Google Gemini via the official `@google/genai` SDK — `generateContentStream` for chat, `embedContent` for RAG embeddings
+
+---
+
+## Deployment
+
+| Service | Platform |
+|----------|----------|
+| Frontend | Vercel |
+| Backend | Render |
+| Database | MongoDB Atlas |
+| AI Model | Google Gemini |
+
+### Production Note
+
+ChatLy uses **HTTP-only secure cookies** for authentication.
+
+When the frontend and backend are deployed on different domains (e.g., Vercel + Render), some browsers with **third-party cookies disabled** may block authenticated requests due to browser privacy policies.
+
+For production environments, the recommended deployment is:
+
+```
+app.example.com      → Frontend
+api.example.com      → Backend
+```
+
+or another same-site deployment architecture to ensure seamless authentication across all browsers.
 
 ---
 
@@ -102,8 +132,6 @@ npm run dev
 
 Open `http://localhost:5173`, register an account, and start chatting.
 
-Full setup details, environment variables, and troubleshooting live in [`SETUP.md`](./SETUP.md).
-
 ---
 
 ## API overview
@@ -131,16 +159,50 @@ Being explicit about what's simplified for scope, and how it would be hardened f
 - **Sessions** use a single long-lived JWT rather than refresh-token rotation — simpler, but means users re-authenticate after expiry rather than silently refreshing.
 - **No rate limiting yet** on Gemini-calling routes — needed before this is exposed publicly, so one user can't exhaust the API quota.
 
-## Roadmap
+## 🚀 Roadmap
 
-- [ ] Per-user rate limiting (`express-rate-limit`)
-- [ ] Message editing / response regeneration
-- [ ] Multi-document manager (view/remove indexed files independently of chat deletion)
-- [ ] Swap cosine-similarity retrieval for a proper vector index at scale
-- [ ] Integration tests for auth and messaging routes (Jest + Supertest)
+- [ ] Chat renaming
+- [ ] Message editing & AI response regeneration
+- [ ] Conversation search
+- [ ] Export chats as PDF / Markdown
+- [ ] Multi-document management (upload, remove, re-index)
+- [ ] Voice input and speech synthesis
+- [ ] Image understanding using Gemini Vision
+- [ ] MongoDB Atlas Vector Search for scalable RAG
+- [ ] Rate limiting & API abuse protection
+- [ ] Docker support and CI/CD pipeline
 
 ---
 
-## License
+## 📄 License
 
-MIT
+This project is licensed under the **MIT License**.
+
+You are free to use, modify, and distribute this software under the terms of the MIT License.
+
+See the **LICENSE** file for complete details.
+
+---
+
+## 📌 Version History
+
+#### v1.0.0 (August 2026)
+
+- Initial production-ready release
+- Secure authentication with JWT + HTTP-only cookies
+- Persistent multi-user chat history
+- Real-time AI response streaming using Server-Sent Events (SSE)
+- Retrieval-Augmented Generation (RAG) with PDF/Text document uploads
+- Semantic search using Gemini embeddings
+- Markdown rendering with syntax highlighting
+- Responsive UI with dark/light theme
+- Deployment on Vercel + Render + MongoDB Atlas
+
+---
+
+**Last Updated:** August 2026
+
+**Maintained By:** Aditya Verma
+
+**Live Demo:** https://chatly-ai-alpha.vercel.app
+
