@@ -37,7 +37,9 @@ const ChatLayout = ({ isOpen }) => {
   } = useChat();
   const [isFocused, setIsFocused] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const showWelcome = result.length === 0;
+  const scrollRef = useRef(null);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -47,6 +49,19 @@ const ChatLayout = ({ isOpen }) => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [result]);
+
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const handleScroll = () => {
+      setHasScrolled(scroller.scrollTop > 8);
+    };
+
+    handleScroll();
+    scroller.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", handleScroll);
+  }, [showWelcome]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -85,7 +100,10 @@ const ChatLayout = ({ isOpen }) => {
         isOpen ? "pointer-events-none md:pointer-events-auto" : ""
       }`}
     >
-      <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
+      <div
+        ref={scrollRef}
+        className="chat-scroll-area flex-1 overflow-y-auto px-4 py-6 md:px-8"
+      >
         <AnimatePresence mode="wait">
           {showWelcome ? (
             <MotionDiv
@@ -135,6 +153,11 @@ const ChatLayout = ({ isOpen }) => {
           )}
         </AnimatePresence>
       </div>
+
+      <div
+        aria-hidden="true"
+        className={`chat-top-fade md:hidden ${hasScrolled ? "chat-top-fade-visible" : ""}`}
+      />
 
       <MotionDiv
         className="px-4 pb-4 pt-2 md:px-8"

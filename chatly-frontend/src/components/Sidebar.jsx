@@ -32,6 +32,9 @@ function SidebarBody({
   toggleTheme,
   user,
   logout,
+  isMobile = false,
+  selectedChatId,
+  setSelectedChatId,
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col gap-5 p-5">
@@ -101,7 +104,11 @@ function SidebarBody({
                         type="button"
                         onClick={() => {
                           loadChat(chat.id);
-                          onClose?.();
+                          if (isMobile) {
+                            setSelectedChatId?.(chat.id);
+                          } else {
+                            onClose?.();
+                          }
                         }}
                         className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
                       >
@@ -123,8 +130,17 @@ function SidebarBody({
                       <button
                         type="button"
                         aria-label={`Delete ${chat.title}`}
-                        onClick={() => deleteChat(chat.id)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] opacity-0 transition hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
+                        onClick={() => {
+                          deleteChat(chat.id);
+                          if (isMobile) setSelectedChatId?.(null);
+                        }}
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-red-500/10 hover:text-red-500 ${
+                          isMobile
+                            ? selectedChatId === chat.id
+                              ? "opacity-100"
+                              : "opacity-0 pointer-events-none"
+                            : "opacity-0 group-hover:opacity-100"
+                        }` }
                       >
                         <Trash2 size={13.5} />
                       </button>
@@ -182,6 +198,7 @@ function SidebarBody({
 }
 
 function Sidebar({ isOpen, setIsOpen }) {
+  const [selectedChatId, setSelectedChatId] = useState(null);
   const { chats, currentChatId, loadChat, createNewChat, deleteChat } = useChat();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
@@ -196,6 +213,9 @@ function Sidebar({ isOpen, setIsOpen }) {
     toggleTheme,
     user,
     logout,
+    isMobile: true,
+    selectedChatId,
+    setSelectedChatId,
   };
 
   return (
@@ -210,7 +230,7 @@ function Sidebar({ isOpen, setIsOpen }) {
       </MotionButton>
 
       <aside className="hidden w-[210px] shrink-0 border-r border-[var(--border)] md:flex">
-        <SidebarBody {...sidebarProps} />
+        <SidebarBody {...sidebarProps} isMobile={false} />
       </aside>
 
       <AnimatePresence>
@@ -233,7 +253,11 @@ function Sidebar({ isOpen, setIsOpen }) {
               transition={panelTransition}
             >
               <div className="h-full w-full bg-[var(--bg)]">
-                <SidebarBody {...sidebarProps} onClose={() => setIsOpen(false)} />
+                <SidebarBody
+                  {...sidebarProps}
+                  isMobile
+                  onClose={() => setIsOpen(false)}
+                />
               </div>
             </MotionAside>
           </>

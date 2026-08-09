@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import Answers from "./Answers";
 import Loader from "./Loader";
-import { getBubbleSizing } from "../utils/messageSizing";
 
 const messageTransition = { duration: 0.22, ease: [0.22, 1, 0.36, 1] };
 
@@ -9,11 +8,6 @@ const MotionItem = motion.li;
 
 const QuerryAnswer = ({ item }) => {
   const isQuestion = item.type === "q";
-  const bubbleStyle = getBubbleSizing(
-    item.loading ? "Thinking through it" : item.text,
-    isQuestion ? "question" : "answer",
-  );
-
   return (
     <MotionItem
       layout
@@ -23,12 +17,11 @@ const QuerryAnswer = ({ item }) => {
       transition={messageTransition}
     >
       <div
-        style={bubbleStyle}
-        className={`overflow-hidden rounded-2xl px-4 py-3 ${
+        className={`bubble-shell max-w-[min(100%,48rem)] overflow-hidden rounded-2xl px-4 py-3 ${
           isQuestion
-            ? "bubble-shell ml-auto bg-[var(--ink)] text-[var(--ink-contrast)]"
-            : "bubble-shell border border-[var(--border)] bg-[var(--surface)] text-[var(--text-main)]"
-        }`}
+            ? "ml-auto bg-[var(--ink)] text-[var(--ink-contrast)]"
+            : "border border-[var(--border)] bg-[var(--surface)] text-[var(--text-main)]"
+        } ${item.loading ? "w-fit px-3.5 py-2.5" : ""}`}
       >
         {isQuestion ? (
           <p className="bubble-copy whitespace-pre-wrap text-[14.5px] leading-6">
