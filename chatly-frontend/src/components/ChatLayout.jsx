@@ -14,7 +14,6 @@ const startPrompts = [
   "Debug my code",
   "Plan a project",
   "Explain a concept",
-  "Write something professional",
 ];
 
 const transition = { duration: 0.3, ease: [0.22, 1, 0.36, 1] };
@@ -35,10 +34,13 @@ const ChatLayout = ({ isOpen }) => {
     uploadDocument,
     isSending,
   } = useChat();
+
   const [isFocused, setIsFocused] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+
   const showWelcome = result.length === 0;
+
   const scrollRef = useRef(null);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
@@ -59,16 +61,28 @@ const ChatLayout = ({ isOpen }) => {
     };
 
     handleScroll();
-    scroller.addEventListener("scroll", handleScroll, { passive: true });
-    return () => scroller.removeEventListener("scroll", handleScroll);
+
+    scroller.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    return () => {
+      scroller.removeEventListener("scroll", handleScroll);
+    };
   }, [showWelcome]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
+
     textarea.style.height = "auto";
-    textarea.style.height = `${Math.min(Math.max(textarea.scrollHeight, 48), 180)}px`;
-    textarea.style.overflowY = textarea.scrollHeight > 180 ? "auto" : "hidden";
+    textarea.style.height = `${Math.min(
+      Math.max(textarea.scrollHeight, 48),
+      180
+    )}px`;
+
+    textarea.style.overflowY =
+      textarea.scrollHeight > 180 ? "auto" : "hidden";
   }, [querry]);
 
   const handleSubmit = (event) => {
@@ -78,15 +92,21 @@ const ChatLayout = ({ isOpen }) => {
 
   const handleSuggestionClick = (prompt) => {
     setQuerry(prompt);
-    requestAnimationFrame(() => textareaRef.current?.focus());
+
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
   };
 
   const handleFileChange = async (event) => {
     const file = event.target.files?.[0];
+
     event.target.value = "";
+
     if (!file) return;
 
     setUploading(true);
+
     try {
       await uploadDocument(file);
     } finally {
@@ -100,6 +120,9 @@ const ChatLayout = ({ isOpen }) => {
         isOpen ? "pointer-events-none md:pointer-events-auto" : ""
       }`}
     >
+      {/* =========================================================
+          CHAT SCROLL AREA
+          ========================================================= */}
       <div
         ref={scrollRef}
         className="chat-scroll-area flex-1 overflow-y-auto px-4 py-6 md:px-8"
@@ -117,8 +140,10 @@ const ChatLayout = ({ isOpen }) => {
               <h1 className="font-display text-[28px] font-semibold tracking-tight text-[var(--text-main)] md:text-[34px]">
                 What do you want to work on?
               </h1>
+
               <p className="mt-2 max-w-md text-[14px] leading-6 text-[var(--text-muted)]">
-                Ask questions, solve problems, or build something step by step.
+                Ask questions, solve problems, or build something step by
+                step.
               </p>
 
               <div className="mt-7 flex flex-col gap-2">
@@ -131,7 +156,10 @@ const ChatLayout = ({ isOpen }) => {
                     whileTap={{ scale: 0.99 }}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04, duration: 0.2 }}
+                    transition={{
+                      delay: i * 0.04,
+                      duration: 0.2,
+                    }}
                   >
                     {item}
                   </MotionButton>
@@ -143,34 +171,83 @@ const ChatLayout = ({ isOpen }) => {
               key="messages"
               layout
               className="mx-auto flex w-full max-w-3xl flex-col gap-5"
-              transition={{ layout: { duration: 0.25, ease: "easeInOut" } }}
+              transition={{
+                layout: {
+                  duration: 0.25,
+                  ease: "easeInOut",
+                },
+              }}
             >
               {result.map((item, index) => (
-                <QuerryAnswer key={`${item.type}-${index}`} item={item} />
+                <QuerryAnswer
+                  key={`${item.type}-${index}`}
+                  item={item}
+                />
               ))}
+
               <div ref={bottomRef} />
             </MotionList>
           )}
         </AnimatePresence>
       </div>
 
+      {/* =========================================================
+          CHATGPT-STYLE TOP SMUDGE
+          No sharp border / no hard line.
+          ========================================================= */}
       <div
         aria-hidden="true"
-        className={`chat-top-fade md:hidden ${hasScrolled ? "chat-top-fade-visible" : ""}`}
+        className={`pointer-events-none absolute left-0 right-0 top-0 z-20 h-28 transition-opacity duration-300 ${
+          hasScrolled ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          background:
+            "linear-gradient(to bottom, var(--bg) 0%, color-mix(in srgb, var(--bg) 92%, transparent) 28%, color-mix(in srgb, var(--bg) 55%, transparent) 58%, transparent 100%)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          maskImage:
+            "linear-gradient(to bottom, black 0%, black 35%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 0%, black 35%, transparent 100%)",
+        }}
       />
 
+      {/* =========================================================
+          MOBILE / DESKTOP HEADER PROTECTION
+          Keeps hamburger area visually clean.
+          ========================================================= */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute left-0 right-0 top-0 z-[19] h-16 transition-all duration-300 ${
+          hasScrolled
+            ? "opacity-100 backdrop-blur-[2px]"
+            : "opacity-0"
+        }`}
+      />
+
+      {/* =========================================================
+          COMPOSER
+          ========================================================= */}
       <MotionDiv
         className="px-4 pb-4 pt-2 md:px-8"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08, duration: 0.25 }}
+        transition={{
+          delay: 0.08,
+          duration: 0.25,
+        }}
       >
-        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+        <form
+          onSubmit={handleSubmit}
+          className="mx-auto max-w-3xl"
+        >
           <MotionDiv
             layout
             className="panel rounded-2xl p-2"
             animate={{
-              borderColor: isFocused ? "var(--accent)" : "var(--border)",
+              borderColor: isFocused
+                ? "var(--accent)"
+                : "var(--border)",
             }}
             transition={{ duration: 0.15 }}
           >
@@ -182,6 +259,7 @@ const ChatLayout = ({ isOpen }) => {
                 className="hidden"
                 onChange={handleFileChange}
               />
+
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -190,7 +268,10 @@ const ChatLayout = ({ isOpen }) => {
                 className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)] disabled:opacity-50"
               >
                 {uploading ? (
-                  <Loader2 size={17} className="animate-spin" />
+                  <Loader2
+                    size={17}
+                    className="animate-spin"
+                  />
                 ) : (
                   <Paperclip size={17} />
                 )}
@@ -221,11 +302,22 @@ const ChatLayout = ({ isOpen }) => {
                     ? "bg-[var(--ink)] text-[var(--ink-contrast)]"
                     : "bg-[var(--surface-muted)] text-[var(--text-muted)]"
                 }`}
-                whileHover={hasDraft && !isSending ? { scale: 1.05 } : {}}
-                whileTap={hasDraft && !isSending ? { scale: 0.94 } : {}}
+                whileHover={
+                  hasDraft && !isSending
+                    ? { scale: 1.05 }
+                    : {}
+                }
+                whileTap={
+                  hasDraft && !isSending
+                    ? { scale: 0.94 }
+                    : {}
+                }
               >
                 {isSending ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                  />
                 ) : (
                   <ArrowUp size={16} />
                 )}
@@ -236,7 +328,9 @@ const ChatLayout = ({ isOpen }) => {
               <div className="mt-2 flex flex-wrap items-center gap-1.5 px-1 pb-0.5">
                 <MotionButton
                   type="button"
-                  onClick={() => setUseDocuments((prev) => !prev)}
+                  onClick={() =>
+                    setUseDocuments((prev) => !prev)
+                  }
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition ${
                     useDocuments
                       ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
@@ -245,7 +339,9 @@ const ChatLayout = ({ isOpen }) => {
                   whileTap={{ scale: 0.97 }}
                 >
                   <FileText size={12} />
-                  {useDocuments ? "Using your documents" : "Use uploaded documents"}
+                  {useDocuments
+                    ? "Using your documents"
+                    : "Use uploaded documents"}
                 </MotionButton>
 
                 {documents.map((name) => (
@@ -265,7 +361,11 @@ const ChatLayout = ({ isOpen }) => {
                 <MotionButton
                   key={prompt}
                   type="button"
-                  onClick={() => handleSuggestionClick(`Help me ${prompt.toLowerCase()}.`)}
+                  onClick={() =>
+                    handleSuggestionClick(
+                      `Help me ${prompt.toLowerCase()}.`
+                    )
+                  }
                   className="rounded-full border border-[var(--border)] px-2.5 py-1 text-[11.5px] text-[var(--text-muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
                   whileTap={{ scale: 0.97 }}
                 >

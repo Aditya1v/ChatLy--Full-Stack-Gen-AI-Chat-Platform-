@@ -37,6 +37,8 @@ function SidebarBody({
   selectedChatId,
   setSelectedChatId,
 }) {
+  const [deletingChatIds, setDeletingChatIds] = useState(new Set());
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-5 p-5">
       <div className="flex items-center justify-between">
@@ -45,7 +47,8 @@ function SidebarBody({
             <img src="/favicon.svg" alt="" className="h-5 w-5 object-contain" />
           </div>
           <h1 className="font-display flex items-center text-[17px] font-semibold text-[var(--text-main)]">
-            ChatLy<span className="caret ml-0.5" aria-hidden="true" />
+            ChatLy
+            <span className="caret ml-0.5" aria-hidden="true" />
           </h1>
         </div>
         <button
@@ -85,14 +88,18 @@ function SidebarBody({
           {chats.length > 0 ? (
             <ul className="space-y-1">
               {chats.map((chat, index) => {
+                if(deletingChatIds.has(chat.id)) return null;
                 const active = chat.id === currentChatId;
-
+                
                 return (
                   <MotionItem
                     key={chat.id}
                     initial={{ opacity: 0, x: -6 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: Math.min(index * 0.025, 0.2), duration: 0.18 }}
+                    transition={{
+                      delay: Math.min(index * 0.025, 0.2),
+                      duration: 0.18,
+                    }}
                   >
                     <div
                       className={`group flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition ${
@@ -115,7 +122,11 @@ function SidebarBody({
                       >
                         <MessageSquareText
                           size={15}
-                          className={active ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}
+                          className={
+                            active
+                              ? "text-[var(--accent)]"
+                              : "text-[var(--text-muted)]"
+                          }
                         />
                         <span
                           className={`line-clamp-1 text-[13.5px] ${
@@ -131,9 +142,34 @@ function SidebarBody({
                       <button
                         type="button"
                         aria-label={`Delete ${chat.title}`}
-                        onClick={() => {
-                          deleteChat(chat.id);
-                          if (isMobile) setSelectedChatId?.(null);
+                        onClick={async (e) => {
+                          e.stopPropagation();
+
+                          const chatId = chat.id;
+
+                          // Remove it from the UI immediately
+                          setDeletingChatIds((prev) => {
+                            const next = new Set(prev);
+                            next.add(chatId);
+                            return next;
+                          });
+
+                          if (isMobile) {
+                            setSelectedChatId?.(null);
+                          }
+
+                          try {
+                            await deleteChat(chatId);
+                          } catch (error) {
+                            // Restore the chat if deletion failed
+                            setDeletingChatIds((prev) => {
+                              const next = new Set(prev);
+                              next.delete(chatId);
+                              return next;
+                            });
+
+                            console.error("Failed to delete chat:", error);
+                          }
                         }}
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-red-500/10 hover:text-red-500 ${
                           isMobile
@@ -141,7 +177,7 @@ function SidebarBody({
                               ? "opacity-100"
                               : "opacity-0 pointer-events-none"
                             : "opacity-0 group-hover:opacity-100"
-                        }` }
+                        }`}
                       >
                         <Trash2 size={13.5} />
                       </button>
@@ -188,7 +224,9 @@ function SidebarBody({
           >
             <div className="min-w-0">
               <p className="text-[13px] text-[var(--text-main)]">Log out</p>
-              <p className="truncate text-[11px] text-[var(--text-muted)]">{user.email}</p>
+              <p className="truncate text-[11px] text-[var(--text-muted)]">
+                {user.email}
+              </p>
             </div>
             <LogOut size={15} className="shrink-0 text-[var(--text-muted)]" />
           </button>
@@ -200,7 +238,8 @@ function SidebarBody({
 
 function Sidebar({ isOpen, setIsOpen }) {
   const [selectedChatId, setSelectedChatId] = useState(null);
-  const { chats, currentChatId, loadChat, createNewChat, deleteChat } = useChat();
+  const { chats, currentChatId, loadChat, createNewChat, deleteChat } =
+    useChat();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
 
